@@ -22,8 +22,9 @@ class Seller(StructuredNode):
     updated_at = DateTimeProperty(default_now=True)
     
     # Relationships
-    fish_products = RelationshipFrom('FishProduct', 'SOLD_BY')
-    orders = RelationshipFrom('Order', 'FULFILLED_BY')
+    # Use fully-qualified paths to avoid neomodel resolving attributes on the wrong module
+    fish_products = RelationshipFrom('app.models.fish_product.FishProduct', 'SOLD_BY')
+    orders = RelationshipFrom('app.models.order.Order', 'FULFILLED_BY')
     
     def update_timestamp(self):
         """Update the updated_at timestamp"""

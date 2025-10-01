@@ -32,9 +32,9 @@ class Order(StructuredNode):
     updated_at = DateTimeProperty(default_now=True)
     
     # Relationships
-    buyer = RelationshipTo('Buyer', 'PLACED_BY')
-    seller = RelationshipTo('Seller', 'FULFILLED_BY')
-    fish_product = RelationshipTo('FishProduct', 'CONTAINS')
+    buyer = RelationshipTo('app.models.buyer.Buyer', 'PLACED_BY')
+    seller = RelationshipTo('app.models.seller.Seller', 'FULFILLED_BY')
+    fish_product = RelationshipTo('app.models.fish_product.FishProduct', 'CONTAINS')
     
     def update_timestamp(self):
         """Update the updated_at timestamp"""
