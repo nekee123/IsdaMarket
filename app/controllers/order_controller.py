@@ -8,8 +8,16 @@ class OrderController:
     """Controller for Order CRUD operations"""
     
     @staticmethod
-    def create_order(order_data: OrderCreate, buyer: Buyer) -> OrderResponse:
+    def create_order(order_data: OrderCreate) -> OrderResponse:
         """Create a new order"""
+        # Get the buyer
+        buyer = Buyer.nodes.get_or_none(uid=order_data.buyer_uid)
+        if not buyer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Buyer not found"
+            )
+        
         # Get the fish product
         product = FishProduct.nodes.get_or_none(uid=order_data.fish_product_uid)
         if not product:
@@ -72,14 +80,26 @@ class OrderController:
         return [OrderController._to_response(order) for order in orders]
     
     @staticmethod
-    def get_buyer_orders(buyer: Buyer) -> List[OrderResponse]:
+    def get_buyer_orders(buyer_uid: str) -> List[OrderResponse]:
         """Get all orders for a specific buyer"""
+        buyer = Buyer.nodes.get_or_none(uid=buyer_uid)
+        if not buyer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Buyer not found"
+            )
         orders = buyer.orders.all()
         return [OrderController._to_response(order) for order in orders]
     
     @staticmethod
-    def get_seller_orders(seller: Seller) -> List[OrderResponse]:
+    def get_seller_orders(seller_uid: str) -> List[OrderResponse]:
         """Get all orders for a specific seller"""
+        seller = Seller.nodes.get_or_none(uid=seller_uid)
+        if not seller:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Seller not found"
+            )
         orders = seller.orders.all()
         return [OrderController._to_response(order) for order in orders]
     

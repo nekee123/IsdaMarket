@@ -8,8 +8,16 @@ class FishProductController:
     """Controller for Fish Product CRUD operations"""
     
     @staticmethod
-    def create_product(product_data: FishProductCreate, seller: Seller) -> FishProductResponse:
+    def create_product(product_data: FishProductCreate) -> FishProductResponse:
         """Create a new fish product"""
+        # Get the seller
+        seller = Seller.nodes.get_or_none(uid=product_data.seller_uid)
+        if not seller:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Seller not found"
+            )
+        
         # Create new product
         product = FishProduct(
             name=product_data.name,
@@ -74,21 +82,13 @@ class FishProductController:
         return [FishProductController._to_response(p) for p in filtered_products]
     
     @staticmethod
-    def update_product(product_uid: str, product_data: FishProductUpdate, seller: Seller) -> FishProductResponse:
+    def update_product(product_uid: str, product_data: FishProductUpdate) -> FishProductResponse:
         """Update product information"""
         product = FishProduct.nodes.get_or_none(uid=product_uid)
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Product not found"
-            )
-        
-        # Verify seller owns this product
-        sellers = product.seller.all()
-        if not sellers or sellers[0].uid != seller.uid:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to update this product"
             )
         
         # Update fields if provided
@@ -107,21 +107,13 @@ class FishProductController:
         return FishProductController._to_response(product)
     
     @staticmethod
-    def delete_product(product_uid: str, seller: Seller) -> dict:
+    def delete_product(product_uid: str) -> dict:
         """Delete a product"""
         product = FishProduct.nodes.get_or_none(uid=product_uid)
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Product not found"
-            )
-        
-        # Verify seller owns this product
-        sellers = product.seller.all()
-        if not sellers or sellers[0].uid != seller.uid:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to delete this product"
             )
         
         product.delete()

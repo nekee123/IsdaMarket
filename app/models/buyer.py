@@ -22,7 +22,8 @@ class Buyer(StructuredNode):
     updated_at = DateTimeProperty(default_now=True)
     
     # Relationships
-    orders = RelationshipFrom('Order', 'PLACED_BY')
+    # Use fully-qualified path to avoid neomodel attribute lookup issues
+    orders = RelationshipFrom('app.models.order.Order', 'PLACED_BY')
     
     def update_timestamp(self):
         """Update the updated_at timestamp"""

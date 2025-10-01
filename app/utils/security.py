@@ -4,16 +4,7 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from ..config import settings
 
-# Use PBKDF2-SHA256 as the primary hashing scheme to avoid depending on the
-# bcrypt C extension. PBKDF2-SHA256 is widely supported and avoids the
-# 72-byte bcrypt limitation. If you prefer bcrypt, reinstall the bcrypt
-# package on the host and switch schemes back to bcrypt_sha256.
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-
-# Keep a password byte-limit constant for reference/validation (bcrypt limit)
-# PBKDF2 itself doesn't have the 72-byte restriction, but we still enforce
-# a max length in schemas to avoid accidental huge inputs.
-MAX_PASSWORD_BYTES = 72
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

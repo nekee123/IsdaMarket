@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from .database import init_database, close_database
 from .routes import (
-    auth_router,
     seller_router,
     buyer_router,
     fish_product_router,
@@ -69,7 +68,6 @@ def health_check():
 
 
 # Include routers
-app.include_router(auth_router)
 app.include_router(seller_router)
 app.include_router(buyer_router)
 app.include_router(fish_product_router)

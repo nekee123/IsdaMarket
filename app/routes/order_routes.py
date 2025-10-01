@@ -1,22 +1,17 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, status
 from typing import List
 from ..schemas import OrderCreate, OrderUpdate, OrderResponse
 from ..controllers import OrderController
-from ..models import Buyer, Seller
-from ..utils import get_current_buyer, get_current_seller
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
 @router.post("/", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
-def create_order(
-    order_data: OrderCreate,
-    current_buyer: Buyer = Depends(get_current_buyer)
-):
+def create_order(order_data: OrderCreate):
     """
-    Place a new order (buyers only)
+    Place a new order
     """
-    return OrderController.create_order(order_data, current_buyer)
+    return OrderController.create_order(order_data)
 
 
 @router.get("/", response_model=List[OrderResponse])
@@ -27,20 +22,20 @@ def get_all_orders():
     return OrderController.get_all_orders()
 
 
-@router.get("/buyer/me", response_model=List[OrderResponse])
-def get_my_orders_as_buyer(current_buyer: Buyer = Depends(get_current_buyer)):
+@router.get("/buyer/{buyer_uid}", response_model=List[OrderResponse])
+def get_buyer_orders(buyer_uid: str):
     """
-    Get all orders for current buyer
+    Get all orders for a buyer
     """
-    return OrderController.get_buyer_orders(current_buyer)
+    return OrderController.get_buyer_orders(buyer_uid)
 
 
-@router.get("/seller/me", response_model=List[OrderResponse])
-def get_my_orders_as_seller(current_seller: Seller = Depends(get_current_seller)):
+@router.get("/seller/{seller_uid}", response_model=List[OrderResponse])
+def get_seller_orders(seller_uid: str):
     """
-    Get all orders for current seller
+    Get all orders for a seller
     """
-    return OrderController.get_seller_orders(current_seller)
+    return OrderController.get_seller_orders(seller_uid)
 
 
 @router.get("/{order_uid}", response_model=OrderResponse)

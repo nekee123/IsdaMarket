@@ -1,9 +1,7 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, status
 from typing import List
 from ..schemas import SellerCreate, SellerUpdate, SellerResponse
 from ..controllers import SellerController
-from ..models import Seller
-from ..utils import get_current_seller
 
 router = APIRouter(prefix="/sellers", tags=["Sellers"])
 
@@ -24,12 +22,6 @@ def get_all_sellers():
     return SellerController.get_all_sellers()
 
 
-@router.get("/me", response_model=SellerResponse)
-def get_current_seller_info(current_seller: Seller = Depends(get_current_seller)):
-    """
-    Get current authenticated seller information
-    """
-    return SellerController._to_response(current_seller)
 
 
 @router.get("/{seller_uid}", response_model=SellerResponse)
@@ -41,29 +33,16 @@ def get_seller(seller_uid: str):
 
 
 @router.patch("/{seller_uid}", response_model=SellerResponse)
-def update_seller(
-    seller_uid: str,
-    seller_data: SellerUpdate,
-    current_seller: Seller = Depends(get_current_seller)
-):
+def update_seller(seller_uid: str, seller_data: SellerUpdate):
     """
-    Update seller information (only own profile)
+    Update seller information
     """
-    if current_seller.uid != seller_uid:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=403, detail="Not authorized to update this seller")
     return SellerController.update_seller(seller_uid, seller_data)
 
 
 @router.delete("/{seller_uid}", status_code=status.HTTP_200_OK)
-def delete_seller(
-    seller_uid: str,
-    current_seller: Seller = Depends(get_current_seller)
-):
+def delete_seller(seller_uid: str):
     """
-    Delete seller (only own profile)
+    Delete seller
     """
-    if current_seller.uid != seller_uid:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=403, detail="Not authorized to delete this seller")
     return SellerController.delete_seller(seller_uid)
