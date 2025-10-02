@@ -4,6 +4,7 @@ from datetime import datetime
 
 
 class OrderCreate(BaseModel):
+    buyer_uid: str
     fish_product_uid: str
     quantity: int = Field(..., gt=0)
 

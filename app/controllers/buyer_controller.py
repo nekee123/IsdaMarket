@@ -1,5 +1,8 @@
 from typing import List, Optional
 from fastapi import HTTPException, status
+from neomodel import db
+from neo4j import exceptions as neo4j_exceptions
+import time
 from ..models import Buyer
 from ..schemas import BuyerCreate, BuyerUpdate, BuyerResponse
 from ..utils.security import get_password_hash
@@ -43,13 +46,63 @@ class BuyerController:
     @staticmethod
     def get_all_buyers() -> List[BuyerResponse]:
         """Get all buyers"""
-        buyers = Buyer.nodes.all()
-        return [BuyerController._to_response(buyer) for buyer in buyers]
+        # Return only buyers with valid email formats to avoid neomodel inflate errors
+        query = """
+        MATCH (b:Buyer)
+        WHERE b.email =~ '[^@]+@[^@]+\\.[^@]+'
+        RETURN b.uid AS uid, b.name AS name, b.email AS email,
+               b.contact_number AS contact_number, b.created_at AS created_at,
+               b.updated_at AS updated_at
+        ORDER BY b.created_at DESC
+        """
+
+        # Retry a few times for transient DB connection issues
+        attempts = 3
+        backoff = 0.5
+        last_exc = None
+        for attempt in range(attempts):
+            try:
+                results, meta = db.cypher_query(query)
+                last_exc = None
+                break
+            except neo4j_exceptions.ServiceUnavailable as e:
+                last_exc = e
+                time.sleep(backoff * (attempt + 1))
+        if last_exc:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                                detail="Database unavailable, please try again later") from last_exc
+        buyers = []
+        for row in results:
+            buyers.append({
+                "uid": row[0],
+                "name": row[1],
+                "email": row[2],
+                "contact_number": row[3],
+                "created_at": row[4],
+                "updated_at": row[5],
+            })
+
+        return buyers
     
     @staticmethod
     def update_buyer(buyer_uid: str, buyer_data: BuyerUpdate) -> BuyerResponse:
         """Update buyer information"""
-        buyer = Buyer.nodes.get_or_none(uid=buyer_uid)
+        # Wrap get_or_none in a small retry loop for transient DB errors
+        attempts = 3
+        backoff = 0.5
+        buyer = None
+        last_exc = None
+        for attempt in range(attempts):
+            try:
+                buyer = Buyer.nodes.get_or_none(uid=buyer_uid)
+                last_exc = None
+                break
+            except neo4j_exceptions.ServiceUnavailable as e:
+                last_exc = e
+                time.sleep(backoff * (attempt + 1))
+        if last_exc:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                                detail="Database unavailable, please try again later") from last_exc
         if not buyer:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

@@ -12,7 +12,8 @@ class FishProductBase(BaseModel):
 
 
 class FishProductCreate(FishProductBase):
-    pass
+    # The UID of the seller creating this product
+    seller_uid: str
 
 
 class FishProductUpdate(BaseModel):

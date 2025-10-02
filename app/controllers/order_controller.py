@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import HTTPException, status
 from ..models import Order, FishProduct, Buyer, Seller
+from ..utils.dependencies import _retry_get_or_none
 from ..schemas import OrderCreate, OrderUpdate, OrderResponse
 
 
@@ -9,17 +10,14 @@ class OrderController:
     
     @staticmethod
     def create_order(order_data: OrderCreate) -> OrderResponse:
-        """Create a new order"""
-        # Get the buyer
-        buyer = Buyer.nodes.get_or_none(uid=order_data.buyer_uid)
+        """Create a new order using buyer_uid supplied in the request body"""
+        # Lookup buyer from provided UID
+        buyer = _retry_get_or_none(Buyer, uid=order_data.buyer_uid)
         if not buyer:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Buyer not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Buyer not found")
         
         # Get the fish product
-        product = FishProduct.nodes.get_or_none(uid=order_data.fish_product_uid)
+        product = _retry_get_or_none(FishProduct, uid=order_data.fish_product_uid)
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -82,7 +80,7 @@ class OrderController:
     @staticmethod
     def get_buyer_orders(buyer_uid: str) -> List[OrderResponse]:
         """Get all orders for a specific buyer"""
-        buyer = Buyer.nodes.get_or_none(uid=buyer_uid)
+        buyer = _retry_get_or_none(Buyer, uid=buyer_uid)
         if not buyer:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -94,7 +92,7 @@ class OrderController:
     @staticmethod
     def get_seller_orders(seller_uid: str) -> List[OrderResponse]:
         """Get all orders for a specific seller"""
-        seller = Seller.nodes.get_or_none(uid=seller_uid)
+        seller = _retry_get_or_none(Seller, uid=seller_uid)
         if not seller:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -106,7 +104,7 @@ class OrderController:
     @staticmethod
     def update_order_status(order_uid: str, order_data: OrderUpdate) -> OrderResponse:
         """Update order status"""
-        order = Order.nodes.get_or_none(uid=order_uid)
+        order = _retry_get_or_none(Order, uid=order_uid)
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -119,7 +117,7 @@ class OrderController:
     @staticmethod
     def delete_order(order_uid: str) -> dict:
         """Delete an order"""
-        order = Order.nodes.get_or_none(uid=order_uid)
+        order = _retry_get_or_none(Order, uid=order_uid)
         if not order:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

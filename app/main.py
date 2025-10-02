@@ -17,7 +17,7 @@ load_dotenv()
 app = FastAPI(
     title="IsdaMarket",
     version="1.0.0",
-    description="A comprehensive e-commerce API for fish marketplace built with FastAPI and Neo4j",
+    description="A Fish Marketplace",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -46,25 +46,25 @@ async def shutdown_event():
     print("👋 Application shutdown complete")
 
 
-@app.get("/", tags=["Root"])
-def root():
-    """Root endpoint"""
-    return {
-        "message": f"Welcome to {settings.app_name}",
-        "version": settings.app_version,
-        "docs": "/docs",
-        "redoc": "/redoc"
-    }
+# @app.get("/", tags=["Root"])
+# def root():
+#     """Root endpoint"""
+#     return {
+#         "message": f"Welcome to {settings.app_name}",
+#         "version": settings.app_version,
+#         "docs": "/docs",
+#         "redoc": "/redoc"
+#     }
 
 
-@app.get("/health", tags=["Health"])
-def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "app": settings.app_name,
-        "version": settings.app_version
-    }
+# @app.get("/health", tags=["Health"])
+# def health_check():
+#     """Health check endpoint"""
+#     return {
+#         "status": "healthy",
+#         "app": settings.app_name,
+#         "version": settings.app_version
+#     }
 
 
 # Include routers

@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import HTTPException, status
 from ..models import FishProduct, Seller
+from ..utils.dependencies import _retry_get_or_none
 from ..schemas import FishProductCreate, FishProductUpdate, FishProductResponse
 
 
@@ -11,7 +12,7 @@ class FishProductController:
     def create_product(product_data: FishProductCreate) -> FishProductResponse:
         """Create a new fish product"""
         # Get the seller
-        seller = Seller.nodes.get_or_none(uid=product_data.seller_uid)
+        seller = _retry_get_or_none(Seller, uid=product_data.seller_uid)
         if not seller:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -35,7 +36,7 @@ class FishProductController:
     @staticmethod
     def get_product(product_uid: str) -> FishProductResponse:
         """Get product by UID"""
-        product = FishProduct.nodes.get_or_none(uid=product_uid)
+        product = _retry_get_or_none(FishProduct, uid=product_uid)
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -84,7 +85,7 @@ class FishProductController:
     @staticmethod
     def update_product(product_uid: str, product_data: FishProductUpdate) -> FishProductResponse:
         """Update product information"""
-        product = FishProduct.nodes.get_or_none(uid=product_uid)
+        product = _retry_get_or_none(FishProduct, uid=product_uid)
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -109,7 +110,7 @@ class FishProductController:
     @staticmethod
     def delete_product(product_uid: str) -> dict:
         """Delete a product"""
-        product = FishProduct.nodes.get_or_none(uid=product_uid)
+        product = _retry_get_or_none(FishProduct, uid=product_uid)
         if not product:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
