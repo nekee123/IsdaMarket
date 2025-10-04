@@ -1,9 +1,35 @@
 from fastapi import APIRouter, status
 from typing import List
-from ..schemas import BuyerCreate, BuyerUpdate, BuyerResponse
+from ..schemas import BuyerCreate, BuyerUpdate, BuyerResponse, BuyerLogin
 from ..controllers import BuyerController
 
 router = APIRouter(prefix="/buyers", tags=["Buyers"])
+
+
+@router.post("/login", status_code=status.HTTP_200_OK)
+def login_buyer(login_data: BuyerLogin):
+    """
+    Login as a buyer - returns buyer info with uid and name
+    """
+    from ..models import Buyer
+    from ..utils.security import verify_password
+    from ..utils.dependencies import _retry_get_or_none
+    from fastapi import HTTPException
+    
+    buyer = _retry_get_or_none(Buyer, email=login_data.email)
+    
+    if not buyer or not verify_password(login_data.password, buyer.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password"
+        )
+    
+    return {
+        "uid": buyer.uid,
+        "name": buyer.name,
+        "email": buyer.email,
+        "contact_number": buyer.contact_number
+    }
 
 
 @router.post("/", response_model=BuyerResponse, status_code=status.HTTP_201_CREATED)

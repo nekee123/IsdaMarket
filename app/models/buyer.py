@@ -17,6 +17,7 @@ class Buyer(StructuredNode):
     email = EmailProperty(required=True, unique_index=True)
     contact_number = StringProperty(required=True)
     password_hash = StringProperty(required=True)
+    profile_picture = StringProperty(default="")  # Base64 encoded image
     
     created_at = DateTimeProperty(default_now=True)
     updated_at = DateTimeProperty(default_now=True)

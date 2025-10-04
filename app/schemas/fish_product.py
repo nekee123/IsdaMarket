@@ -9,11 +9,14 @@ class FishProductBase(BaseModel):
     price: float = Field(..., gt=0)
     quantity: int = Field(..., ge=0)
     description: Optional[str] = Field(default="", max_length=500)
+    image: Optional[str] = None
 
 
 class FishProductCreate(FishProductBase):
     # The UID of the seller creating this product
     seller_uid: str
+    # Optional seller_name from frontend (ignored by backend but accepted)
+    seller_name: Optional[str] = None
 
 
 class FishProductUpdate(BaseModel):
@@ -22,6 +25,7 @@ class FishProductUpdate(BaseModel):
     price: Optional[float] = Field(None, gt=0)
     quantity: Optional[int] = Field(None, ge=0)
     description: Optional[str] = Field(None, max_length=500)
+    image: Optional[str] = None
 
 
 class FishProductResponse(FishProductBase):

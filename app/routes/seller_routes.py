@@ -1,9 +1,35 @@
 from fastapi import APIRouter, status
 from typing import List
-from ..schemas import SellerCreate, SellerUpdate, SellerResponse
+from ..schemas import SellerCreate, SellerUpdate, SellerResponse, SellerLogin
 from ..controllers import SellerController
 
 router = APIRouter(prefix="/sellers", tags=["Sellers"])
+
+
+@router.post("/login", status_code=status.HTTP_200_OK)
+def login_seller(login_data: SellerLogin):
+    """
+    Login as a seller - returns seller info with uid and name
+    """
+    from ..models import Seller
+    from ..utils.security import verify_password
+    from ..utils.dependencies import _retry_get_or_none
+    from fastapi import HTTPException
+    
+    seller = _retry_get_or_none(Seller, email=login_data.email)
+    
+    if not seller or not verify_password(login_data.password, seller.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password"
+        )
+    
+    return {
+        "uid": seller.uid,
+        "name": seller.name,
+        "email": seller.email,
+        "contact_number": seller.contact_number
+    }
 
 
 @router.post("/", response_model=SellerResponse, status_code=status.HTTP_201_CREATED)

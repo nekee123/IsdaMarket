@@ -114,6 +114,8 @@ class SellerController:
             seller.contact_number = seller_data.contact_number
         if seller_data.password is not None:
             seller.password_hash = get_password_hash(seller_data.password)
+        if seller_data.profile_picture is not None:
+            seller.profile_picture = seller_data.profile_picture
         
         seller.update_timestamp()
         return SellerController._to_response(seller)
@@ -139,6 +141,7 @@ class SellerController:
             name=seller.name,
             email=seller.email,
             contact_number=seller.contact_number,
+            profile_picture=seller.profile_picture if hasattr(seller, 'profile_picture') else "",
             created_at=seller.created_at,
             updated_at=seller.updated_at
         )

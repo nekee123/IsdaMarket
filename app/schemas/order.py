@@ -7,6 +7,12 @@ class OrderCreate(BaseModel):
     buyer_uid: str
     fish_product_uid: str
     quantity: int = Field(..., gt=0)
+    # Optional fields from frontend (ignored by backend but accepted)
+    buyer_name: Optional[str] = None
+    seller_uid: Optional[str] = None
+    seller_name: Optional[str] = None
+    fish_product_name: Optional[str] = None
+    total_price: Optional[float] = None
 
 
 class OrderUpdate(BaseModel):

@@ -125,6 +125,8 @@ class BuyerController:
             buyer.contact_number = buyer_data.contact_number
         if buyer_data.password is not None:
             buyer.password_hash = get_password_hash(buyer_data.password)
+        if buyer_data.profile_picture is not None:
+            buyer.profile_picture = buyer_data.profile_picture
         
         buyer.update_timestamp()
         return BuyerController._to_response(buyer)
@@ -150,6 +152,7 @@ class BuyerController:
             name=buyer.name,
             email=buyer.email,
             contact_number=buyer.contact_number,
+            profile_picture=buyer.profile_picture if hasattr(buyer, 'profile_picture') else "",
             created_at=buyer.created_at,
             updated_at=buyer.updated_at
         )

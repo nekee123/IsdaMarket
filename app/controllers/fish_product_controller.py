@@ -25,7 +25,8 @@ class FishProductController:
             type=product_data.type,
             price=product_data.price,
             quantity=product_data.quantity,
-            description=product_data.description
+            description=product_data.description,
+            image=product_data.image if product_data.image else ""
         ).save()
         
         # Link to seller
@@ -103,6 +104,8 @@ class FishProductController:
             product.quantity = product_data.quantity
         if product_data.description is not None:
             product.description = product_data.description
+        if product_data.image is not None:
+            product.image = product_data.image
         
         product.update_timestamp()
         return FishProductController._to_response(product)
@@ -134,6 +137,7 @@ class FishProductController:
             price=product.price,
             quantity=product.quantity,
             description=product.description,
+            image=product.image if hasattr(product, 'image') else "",
             seller_uid=seller_uid,
             seller_name=seller_name,
             created_at=product.created_at,

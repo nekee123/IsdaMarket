@@ -20,6 +20,7 @@ class FishProduct(StructuredNode):
     price = FloatProperty(required=True)
     quantity = IntegerProperty(default=0)
     description = StringProperty(default="")
+    image = StringProperty(default="")  # Base64 encoded image
     
     created_at = DateTimeProperty(default_now=True)
     updated_at = DateTimeProperty(default_now=True)
