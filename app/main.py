@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse  # 👈 add this line
 from dotenv import load_dotenv
 from .database import init_database, close_database
 from .routes import (
@@ -31,13 +32,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.on_event("startup")
 async def startup_event():
     """Initialize database connection on startup"""
     init_database()
     print(f"🚀 {settings.app_name} v{settings.app_version} started successfully!")
-
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -45,34 +44,17 @@ async def shutdown_event():
     close_database()
     print("👋 Application shutdown complete")
 
-
-# @app.get("/", tags=["Root"])
-# def root():
-#     """Root endpoint"""
-#     return {
-#         "message": f"Welcome to {settings.app_name}",
-#         "version": settings.app_version,
-#         "docs": "/docs",
-#         "redoc": "/redoc"
-#     }
-
-
-# @app.get("/health", tags=["Health"])
-# def health_check():
-#     """Health check endpoint"""
-#     return {
-#         "status": "healthy",
-#         "app": settings.app_name,
-#         "version": settings.app_version
-#     }
-
+# 👇 ADD THIS NEW ROUTE
+@app.get("/", include_in_schema=False)
+async def redirect_to_docs():
+    """Redirect root URL to Swagger docs"""
+    return RedirectResponse(url="/docs")
 
 # Include routers
 app.include_router(seller_router)
 app.include_router(buyer_router)
 app.include_router(fish_product_router)
 app.include_router(order_router)
-
 
 if __name__ == "__main__":
     import uvicorn
