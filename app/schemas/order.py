@@ -23,8 +23,10 @@ class OrderResponse(BaseModel):
     uid: str
     buyer_uid: str
     buyer_name: str
+    buyer_contact: str  # add this
     seller_uid: str
     seller_name: str
+    seller_contact: str  # add this
     fish_product_uid: str
     fish_product_name: str
     quantity: int
@@ -32,6 +34,6 @@ class OrderResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
