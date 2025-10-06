@@ -129,6 +129,7 @@ class FishProductController:
         sellers = product.seller.all()
         seller_uid = sellers[0].uid if sellers else None
         seller_name = sellers[0].name if sellers else None
+        seller_location = sellers[0].location if sellers and hasattr(sellers[0], 'location') else None
         
         return FishProductResponse(
             uid=product.uid,
@@ -140,6 +141,7 @@ class FishProductController:
             image=product.image if hasattr(product, 'image') else "",
             seller_uid=seller_uid,
             seller_name=seller_name,
+            seller_location=seller_location,
             created_at=product.created_at,
             updated_at=product.updated_at
         )

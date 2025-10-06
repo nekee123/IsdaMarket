@@ -7,6 +7,7 @@ class SellerBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     contact_number: str = Field(..., min_length=10, max_length=20)
+    location: Optional[str] = None
     profile_picture: Optional[str] = None
 
 
@@ -18,6 +19,7 @@ class SellerUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[EmailStr] = None
     contact_number: Optional[str] = Field(None, min_length=10, max_length=20)
+    location: Optional[str] = None
     password: Optional[str] = Field(None, min_length=6, max_length=72)
     profile_picture: Optional[str] = None
 

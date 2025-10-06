@@ -27,6 +27,7 @@ class SellerController:
             name=seller_data.name,
             email=seller_data.email,
             contact_number=seller_data.contact_number,
+            location=seller_data.location or "",
             password_hash=get_password_hash(seller_data.password)
         ).save()
         
@@ -51,8 +52,8 @@ class SellerController:
         MATCH (s:Seller)
         WHERE s.email =~ '[^@]+@[^@]+\\.[^@]+'
         RETURN s.uid AS uid, s.name AS name, s.email AS email,
-               s.contact_number AS contact_number, s.created_at AS created_at,
-               s.updated_at AS updated_at
+               s.contact_number AS contact_number, s.location AS location,
+               s.created_at AS created_at, s.updated_at AS updated_at
         ORDER BY s.created_at DESC
         """
 
@@ -78,8 +79,9 @@ class SellerController:
                 "name": row[1],
                 "email": row[2],
                 "contact_number": row[3],
-                "created_at": row[4],
-                "updated_at": row[5],
+                "location": row[4] or "",
+                "created_at": row[5],
+                "updated_at": row[6],
             })
 
         return sellers
@@ -112,6 +114,8 @@ class SellerController:
             seller.email = seller_data.email
         if seller_data.contact_number is not None:
             seller.contact_number = seller_data.contact_number
+        if seller_data.location is not None:
+            seller.location = seller_data.location
         if seller_data.password is not None:
             seller.password_hash = get_password_hash(seller_data.password)
         if seller_data.profile_picture is not None:
@@ -141,6 +145,7 @@ class SellerController:
             name=seller.name,
             email=seller.email,
             contact_number=seller.contact_number,
+            location=seller.location if hasattr(seller, 'location') else "",
             profile_picture=seller.profile_picture if hasattr(seller, 'profile_picture') else "",
             created_at=seller.created_at,
             updated_at=seller.updated_at

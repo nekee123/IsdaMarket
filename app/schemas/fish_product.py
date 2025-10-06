@@ -32,6 +32,7 @@ class FishProductResponse(FishProductBase):
     uid: str
     seller_uid: Optional[str] = None
     seller_name: Optional[str] = None
+    seller_location: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     

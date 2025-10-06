@@ -61,32 +61,35 @@ async def redirect_to_docs():
 
 # ✅ SEARCH ROUTE
 @app.get("/search")
-def search_items(query: str = Query(...), search_type: str = Query("products")):
+def search_items(query: str = Query(...), search_type: str = Query(...)):
     """
     Search for products, sellers, or buyers by name.
     """
     with driver.session() as session:
         if search_type == "products":
             cypher = """
-            MATCH (p:Product)
+            MATCH (p:FishProduct)
             WHERE toLower(p.name) CONTAINS toLower($query)
-            RETURN p { .name, .price, .location } AS item
+            RETURN p.uid AS id, p.name AS name, p.price AS price, p.type AS location
+            LIMIT 10
             """
         elif search_type == "sellers":
             cypher = """
             MATCH (s:Seller)
             WHERE toLower(s.name) CONTAINS toLower($query)
-            RETURN s { .name, .location } AS item
+            RETURN s.uid AS id, s.name AS name, s.location AS location
+            LIMIT 10
             """
         else:
             cypher = """
             MATCH (b:Buyer)
             WHERE toLower(b.name) CONTAINS toLower($query)
-            RETURN b { .name, .location } AS item
+            RETURN b.uid AS id, b.name AS name, b.location AS location
+            LIMIT 10
             """
 
         results = session.run(cypher, {"query": query})
-        items = [record["item"] for record in results]
+        items = [dict(record) for record in results]
         return items
 
 # Include routers

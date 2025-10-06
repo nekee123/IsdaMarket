@@ -16,6 +16,7 @@ class Seller(StructuredNode):
     name = StringProperty(required=True, index=True)
     email = EmailProperty(required=True, unique_index=True)
     contact_number = StringProperty(required=True)
+    location = StringProperty(default="")  # Seller's location
     password_hash = StringProperty(required=True)
     profile_picture = StringProperty(default="")  # Base64 encoded image
     
