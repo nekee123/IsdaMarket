@@ -9,7 +9,10 @@ from .routes import (
     seller_router,
     buyer_router,
     fish_product_router,
-    order_router
+    order_router,
+    notification_router,
+    message_router,
+    review_router
 )
 from .config import settings
 
@@ -97,6 +100,9 @@ app.include_router(seller_router)
 app.include_router(buyer_router)
 app.include_router(fish_product_router)
 app.include_router(order_router)
+app.include_router(notification_router)
+app.include_router(message_router)
+app.include_router(review_router)
 
 if __name__ == "__main__":
     import uvicorn

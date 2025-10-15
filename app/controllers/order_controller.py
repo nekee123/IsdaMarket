@@ -3,6 +3,9 @@ from fastapi import HTTPException, status
 from ..models import Order, FishProduct, Buyer, Seller
 from ..utils.dependencies import _retry_get_or_none
 from ..schemas import OrderCreate, OrderUpdate, OrderResponse
+from ..database import get_db
+from datetime import datetime
+import uuid
 
 
 class OrderController:
@@ -41,6 +44,14 @@ class OrderController:
         order.fish_product.connect(product)
         product.reduce_quantity(order_data.quantity)
         
+        # Create notification for seller
+        OrderController._create_notification(
+            recipient_uid=seller.uid,
+            recipient_type="seller",
+            notif_type="new_order",
+            message=f"New order received from {buyer.name} for {product.name}!"
+        )
+        
         return OrderController._to_response(order)
     
     @staticmethod
@@ -77,7 +88,40 @@ class OrderController:
         if not order:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
         
-        order.update_status(order_data.status)
+        old_status = order.status
+        new_status = order_data.status
+        order.update_status(new_status)
+        
+        # Get buyer for notification
+        buyers = order.buyer.all()
+        products = order.fish_product.all()
+        buyer = buyers[0] if buyers else None
+        product = products[0] if products else None
+        
+        # Create notification for buyer based on status change
+        if buyer and new_status != old_status:
+            if new_status in ["confirmed", "accepted", "processing"]:
+                OrderController._create_notification(
+                    recipient_uid=buyer.uid,
+                    recipient_type="buyer",
+                    notif_type="order_approved",
+                    message=f"Your order for {product.name if product else 'product'} has been approved!"
+                )
+            elif new_status == "delivered":
+                OrderController._create_notification(
+                    recipient_uid=buyer.uid,
+                    recipient_type="buyer",
+                    notif_type="order_delivered",
+                    message=f"Your order for {product.name if product else 'product'} has been delivered!"
+                )
+            elif new_status == "cancelled":
+                OrderController._create_notification(
+                    recipient_uid=buyer.uid,
+                    recipient_type="buyer",
+                    notif_type="order_cancelled",
+                    message=f"Your order for {product.name if product else 'product'} has been cancelled."
+                )
+        
         return OrderController._to_response(order)
     
     @staticmethod
@@ -97,6 +141,38 @@ class OrderController:
         return {"message": "Order deleted successfully"}
     
     @staticmethod
+    def _create_notification(recipient_uid: str, recipient_type: str, notif_type: str, message: str):
+        """Helper method to create a notification"""
+        try:
+            driver = get_db()
+            with driver.session() as session:
+                notif_uid = str(uuid.uuid4())
+                created_at = datetime.utcnow().isoformat()
+                
+                query = """
+                CREATE (n:Notification {
+                    uid: $uid,
+                    recipient_uid: $recipient_uid,
+                    recipient_type: $recipient_type,
+                    type: $type,
+                    message: $message,
+                    read: false,
+                    created_at: $created_at
+                })
+                """
+                
+                session.run(query, {
+                    "uid": notif_uid,
+                    "recipient_uid": recipient_uid,
+                    "recipient_type": recipient_type,
+                    "type": notif_type,
+                    "message": message,
+                    "created_at": created_at
+                })
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+    
+    @staticmethod
     def _to_response(order: Order) -> dict:
         """Convert Order model to response dictionary including buyer and seller contacts"""
          # Get related buyer, seller, and product
@@ -107,6 +183,21 @@ class OrderController:
         buyer = buyers[0] if buyers else None
         seller = sellers[0] if sellers else None
         product = products[0] if products else None
+        
+        # Check if order has been reviewed
+        reviewed = False
+        if order.uid:
+            try:
+                driver = get_db()
+                with driver.session() as session:
+                    review_check = session.run(
+                        "MATCH (r:Review {order_uid: $order_uid}) RETURN count(r) as count",
+                        {"order_uid": order.uid}
+                    )
+                    result = review_check.single()
+                    reviewed = result["count"] > 0 if result else False
+            except Exception:
+                reviewed = False
     
         return {
         "uid": order.uid,
@@ -121,6 +212,7 @@ class OrderController:
         "quantity": order.quantity,
         "total_price": order.total_price,
         "status": order.status,
+        "reviewed": reviewed,
         "created_at": order.created_at,
         "updated_at": order.updated_at
     }
